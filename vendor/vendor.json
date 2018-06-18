@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "bruCQblgR1r1kqEu38n3BaPcYAY=",
+			"path": "github.com/bq/Go-Option/option",
+			"revision": "5c06aa214c06f114a79bc5718c97014db96e7040",
+			"revisionTime": "2017-03-16T16:30:56Z"
+		}
+	],
+	"rootPath": "github.com/bq/pubsubConnector"
+}
