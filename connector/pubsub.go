@@ -1,13 +1,14 @@
 package connector
 
 import (
-	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"sync"
+
+	"golang.org/x/net/context"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/Sirupsen/logrus"
