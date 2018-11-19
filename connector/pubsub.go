@@ -35,9 +35,7 @@ type PubSubConnectorBehavior interface {
 	CreateSubscription() (*pubsub.Subscription, error)
 }
 
-// NewPubSubConnectorPrototype creates a new instance of a pub sub connector.
-func NewPubSubConnectorPrototype(credentialsPath, topicName, projectID, groupId string) *PubSubConnector {
-
+func getInstance(credentialsPath, topicName, projectID, groupId string) *PubSubConnector {
 	pubSubConnector := new(PubSubConnector)
 
 	pubSubConnector.ctx = context.Background()
@@ -126,91 +124,15 @@ func NewPubSubConnectorPrototype(credentialsPath, topicName, projectID, groupId 
 	return pubSubConnector
 }
 
+// NewPubSubConnectorPrototype creates a new instance of a pub sub connector.
+func NewPubSubConnectorPrototype(credentialsPath, topicName, projectID, groupId string) *PubSubConnector {
+	return getInstance(credentialsPath, topicName, projectID, groupId)
+}
+
 // NewPubSubConnector creates a singleton instance of a pub-sub connector.
 func NewPubSubConnector(credentialsPath, topicName, projectID, groupId string) *PubSubConnector {
 	oncePubsub.Do(func() {
-		pubSubConnectorInstance.ctx = context.Background()
-
-		if emu := os.Getenv("PUBSUB_EMULATOR_HOST"); emu != "" {
-			client, err := pubsub.NewClient(pubSubConnectorInstance.ctx, projectID)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			pubSubConnectorInstance.client = client
-			pubSubConnectorInstance.topicName = topicName
-
-			exist, e := client.Topic(topicName).Exists(pubSubConnectorInstance.ctx)
-			if e != nil {
-				log.Fatal(e.Error())
-			}
-
-			if !exist {
-				_, err := client.CreateTopic(pubSubConnectorInstance.ctx, topicName)
-				if err != nil {
-					log.Fatal("Topic " + topicName + " can not be created. " + err.Error())
-				}
-			}
-
-			pubSubConnectorInstance.topic = client.Topic(topicName)
-			pubSubConnectorInstance.out = make(chan *optional.Option)
-			if groupId == "" {
-				pubSubConnectorInstance.groupId, _ = os.Hostname()
-			} else {
-				pubSubConnectorInstance.groupId = groupId
-			}
-
-		} else {
-			if credentialsPath != "" {
-				jsonKey, err := ioutil.ReadFile(path.Join(credentialsPath, "keyfile.json"))
-
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				conf, err := google.JWTConfigFromJSON(
-					jsonKey,
-					pubsub.ScopePubSub,
-				)
-
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				client, err := pubsub.NewClient(
-					pubSubConnectorInstance.ctx,
-					projectID,
-					option.WithTokenSource(conf.TokenSource(pubSubConnectorInstance.ctx)),
-				)
-
-				pubSubConnectorInstance.client = client
-				pubSubConnectorInstance.topicName = topicName
-
-				exist, e := client.Topic(topicName).Exists(pubSubConnectorInstance.ctx)
-				if e != nil {
-					log.Fatal(e.Error())
-				}
-
-				if !exist {
-					_, err := client.CreateTopic(pubSubConnectorInstance.ctx, topicName)
-					if err != nil {
-						log.Fatal("Topic " + topicName + " can not be created. " + err.Error())
-					}
-				}
-
-				pubSubConnectorInstance.topic = client.Topic(topicName)
-				pubSubConnectorInstance.out = make(chan *optional.Option)
-				if groupId == "" {
-					pubSubConnectorInstance.groupId, _ = os.Hostname()
-				} else {
-					pubSubConnectorInstance.groupId = groupId
-				}
-
-			} else {
-				log.Fatal("Missing cloudstorage credentials path")
-			}
-		}
+		pubSubConnectorInstance = *getInstance(credentialsPath, topicName, projectID, groupId)
 	})
 
 	return &pubSubConnectorInstance
