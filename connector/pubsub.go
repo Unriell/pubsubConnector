@@ -11,8 +11,8 @@ import (
 	"golang.org/x/net/context"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/Sirupsen/logrus"
 	optional "github.com/bq/Go-Option/option"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
